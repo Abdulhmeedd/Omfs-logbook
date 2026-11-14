@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل الحالات الجراحية التشاركي</title>
+    <!-- استدعاء مكتبة Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- استدعاء أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4">
+
+    <!-- العنوان العلوي -->
+    <div class="flex justify-between items-center mb-4">
+        <div class="flex-1 text-center">
+            <h1 class="text-xl font-bold mb-1">سجل الحالات الجراحية التشاركي</h1>
+            <span class="bg-yellow-900 text-yellow-300 text-xs px-3 py-1 rounded-full border border-yellow-700">
+                <i class="fa-solid fa-circle text-[8px] ml-1"></i> وضع المعاينة غير متصل بالسحابة
+            </span>
+        </div>
+        <div class="bg-gray-800 p-2 rounded-lg">
+            <i class="fa-solid fa-file-medical text-xl text-blue-400"></i>
+        </div>
+    </div>
+
+    <!-- أزرار الإجراءات -->
+    <div class="flex gap-2 mb-6">
+        <button class="flex-1 bg-teal-700 hover:bg-teal-600 text-white py-3 rounded-xl font-bold flex justify-center items-center gap-2">
+            <i class="fa-solid fa-plus-circle"></i> إضافة حالة جراحية
+        </button>
+        <button class="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white py-3 rounded-xl font-bold flex justify-center items-center gap-2">
+            <i class="fa-solid fa-user-shield text-yellow-500"></i> دخول المشرف
+        </button>
+        <button class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 rounded-xl">
+            <i class="fa-solid fa-print text-blue-400"></i>
+        </button>
+    </div>
+
+    <!-- شبكة الإحصائيات -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+        <!-- إجمالي الحالات -->
+        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex justify-between items-center">
+            <div>
+                <p class="text-gray-400 text-sm mb-1">إجمالي الحالات</p>
+                <p class="text-2xl font-bold">0</p>
+            </div>
+            <i class="fa-solid fa-folder-tree text-2xl text-gray-400"></i>
+        </div>
+        <!-- الحالات المعتمدة -->
+        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex justify-between items-center">
+            <div>
+                <p class="text-gray-400 text-sm mb-1">الحالات المعتمدة</p>
+                <p class="text-2xl font-bold text-teal-400">0</p>
+            </div>
+            <i class="fa-solid fa-check-circle text-2xl text-teal-500"></i>
+        </div>
+        <!-- قيد المراجعة -->
+        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex justify-between items-center">
+            <div>
+                <p class="text-gray-400 text-sm mb-1">قيد المراجعة</p>
+                <p class="text-2xl font-bold text-orange-400">0</p>
+            </div>
+            <i class="fa-solid fa-hourglass-half text-2xl text-orange-500"></i>
+        </div>
+        <!-- الأطباء المشاركون -->
+        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex justify-between items-center">
+            <div>
+                <p class="text-gray-400 text-sm mb-1">الأطباء المشاركون</p>
+                <p class="text-2xl font-bold text-blue-400">0</p>
+            </div>
+            <i class="fa-solid fa-user-doctor text-2xl text-blue-500"></i>
+        </div>
+    </div>
+
+    <!-- قسم الفلترة والبحث -->
+    <div class="bg-gray-800 p-3 rounded-2xl border border-gray-700 mb-6 space-y-3">
+        <div class="relative">
+            <input type="text" placeholder="بحث بالتشخيص، الإجراء، المريض..." class="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 px-10 text-sm focus:outline-none focus:border-teal-500">
+            <i class="fa-solid fa-search absolute right-3 top-3.5 text-gray-500"></i>
+        </div>
+        <select class="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 px-4 text-sm appearance-none text-gray-300">
+            <option>جميع الأطباء المقيمين</option>
+        </select>
+        <select class="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 px-4 text-sm appearance-none text-gray-300">
+            <option>جميع التصنيفات الجراحية</option>
+        </select>
+        <select class="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 px-4 text-sm appearance-none text-gray-300">
+            <option>كل الحالات</option>
+        </select>
+    </div>
+
+    <!-- حالة عدم وجود بيانات -->
+    <div class="border border-dashed border-gray-700 rounded-2xl p-8 text-center bg-gray-800/50">
+        <div class="bg-gray-800 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4 border border-gray-700">
+            <i class="fa-solid fa-file-circle-plus text-gray-400 text-xl"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2">لا توجد حالات جراحية مطابقة</h3>
+        <p class="text-gray-400 text-sm">يمكن للأطباء المقيمين إضافة حالاتهم الآن لتظهر هنا</p>
+    </div>
+
+</body>
+</html>
