@@ -3,104 +3,1407 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سجل الحالات الجراحية التشاركي</title>
-    <!-- استدعاء مكتبة Tailwind CSS للتصميم -->
+    <title>سجل الحالات الجراحية التشاركي | Collaborative OMFS Logbook</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- استدعاء أيقونات FontAwesome -->
+    <!-- Google Fonts: Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        medical: {
+                            950: '#081226',
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            blue: '#0284c7',
+                            blueDark: '#0369a1',
+                            teal: '#0d9488',
+                            tealDark: '#0f766e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 3px;
+        }
+
+        /* Print Media Styles for A4 Academic Portfolio */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                font-size: 11pt;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .print-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                margin-bottom: 1.25rem;
+            }
+            .print-grid-images {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 8px !important;
+            }
+            .print-grid-images img {
+                height: 105px !important;
+                object-fit: cover !important;
+                border: 1px solid #94a3b8;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen p-4">
+<body class="min-h-screen flex flex-col">
 
-    <!-- العنوان العلوي -->
-    <div class="flex justify-between items-center mb-4">
-        <div class="flex-1 text-center">
-            <h1 class="text-xl font-bold mb-1">سجل الحالات الجراحية التشاركي</h1>
-            <span class="bg-yellow-900 text-yellow-300 text-xs px-3 py-1 rounded-full border border-yellow-700">
-                <i class="fa-solid fa-circle text-[8px] ml-1"></i> وضع المعاينة غير متصل بالسحابة
-            </span>
-        </div>
-        <div class="bg-gray-800 p-2 rounded-lg">
-            <i class="fa-solid fa-file-medical text-xl text-blue-400"></i>
-        </div>
-    </div>
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2 no-print"></div>
 
-    <!-- أزرار الإجراءات -->
-    <div class="flex gap-2 mb-6">
-        <button class="flex-1 bg-teal-700 hover:bg-teal-600 text-white py-3 rounded-xl font-bold flex justify-center items-center gap-2">
-            <i class="fa-solid fa-plus-circle"></i> إضافة حالة جراحية
-        </button>
-        <button class="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white py-3 rounded-xl font-bold flex justify-center items-center gap-2">
-            <i class="fa-solid fa-user-shield text-yellow-500"></i> دخول المشرف
-        </button>
-        <button class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 rounded-xl">
-            <i class="fa-solid fa-print text-blue-400"></i>
-        </button>
-    </div>
-
-    <!-- شبكة الإحصائيات -->
-    <div class="grid grid-cols-2 gap-3 mb-6">
-        <!-- إجمالي الحالات -->
-        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex justify-between items-center">
-            <div>
-                <p class="text-gray-400 text-sm mb-1">إجمالي الحالات</p>
-                <p class="text-2xl font-bold">0</p>
+    <!-- Top Navigation Header (Tablet-Optimized Touch Targets) -->
+    <header class="bg-medical-900 text-white shadow-lg sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand & Live Sync Indicator -->
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-medical-teal to-medical-blue flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-staff-snake text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h1 class="text-base sm:text-xl font-extrabold tracking-tight">سجل الحالات الجراحية التشاركي</h1>
+                        <span id="sync-badge" class="inline-flex items-center gap-1.5 text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            جاري الاتصال...
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">قسم جراحة الوجه والفكين | منصة المتابعة السحابية للمقيمين والمشرفين</p>
+                </div>
             </div>
-            <i class="fa-solid fa-folder-tree text-2xl text-gray-400"></i>
-        </div>
-        <!-- الحالات المعتمدة -->
-        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex justify-between items-center">
-            <div>
-                <p class="text-gray-400 text-sm mb-1">الحالات المعتمدة</p>
-                <p class="text-2xl font-bold text-teal-400">0</p>
+
+            <!-- Primary Touch Actions -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <button onclick="openCaseModal()" class="bg-medical-teal hover:bg-medical-tealDark active:scale-95 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow-md flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-base"></i>
+                    <span>إضافة حالة جراحية</span>
+                </button>
+
+                <button id="supervisor-mode-btn" onclick="openSupervisorLoginModal()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 border border-slate-700 font-bold px-4 py-2.5 rounded-xl text-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield text-amber-400"></i>
+                    <span id="supervisor-btn-text">دخول المشرف</span>
+                </button>
+
+                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 border border-slate-700 font-semibold px-3.5 py-2.5 rounded-xl text-sm transition flex items-center gap-2" title="طباعة التقرير A4">
+                    <i class="fa-solid fa-print text-sky-400"></i>
+                    <span class="hidden md:inline">طباعة / PDF</span>
+                </button>
             </div>
-            <i class="fa-solid fa-check-circle text-2xl text-teal-500"></i>
         </div>
-        <!-- قيد المراجعة -->
-        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex justify-between items-center">
+    </header>
+
+    <!-- Print-Only Official Header -->
+    <div class="hidden print-only border-b-2 border-slate-900 pb-4 mb-5">
+        <div class="flex justify-between items-center">
             <div>
-                <p class="text-gray-400 text-sm mb-1">قيد المراجعة</p>
-                <p class="text-2xl font-bold text-orange-400">0</p>
+                <h1 class="text-2xl font-extrabold text-slate-900">السجل الجراحي الموحد لقسم جراحة الوجه والفكين</h1>
+                <p class="text-sm text-slate-600">Department of Oral & Maxillofacial Surgery — Collaborative Logbook</p>
             </div>
-            <i class="fa-solid fa-hourglass-half text-2xl text-orange-500"></i>
-        </div>
-        <!-- الأطباء المشاركون -->
-        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex justify-between items-center">
-            <div>
-                <p class="text-gray-400 text-sm mb-1">الأطباء المشاركون</p>
-                <p class="text-2xl font-bold text-blue-400">0</p>
+            <div class="text-left text-xs text-slate-700">
+                <p id="print-date" class="font-semibold"></p>
+                <p id="print-summary-line" class="font-bold mt-1"></p>
             </div>
-            <i class="fa-solid fa-user-doctor text-2xl text-blue-500"></i>
         </div>
     </div>
 
-    <!-- قسم الفلترة والبحث -->
-    <div class="bg-gray-800 p-3 rounded-2xl border border-gray-700 mb-6 space-y-3">
-        <div class="relative">
-            <input type="text" placeholder="بحث بالتشخيص، الإجراء، المريض..." class="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 px-10 text-sm focus:outline-none focus:border-teal-500">
-            <i class="fa-solid fa-search absolute right-3 top-3.5 text-gray-500"></i>
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
+
+        <!-- Supervisor Active Banner (Shown when Supervisor PIN is unlocked) -->
+        <div id="supervisor-banner" class="hidden mb-5 bg-emerald-900 text-white rounded-2xl p-4 shadow-md flex flex-wrap items-center justify-between gap-3 no-print">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-700 flex items-center justify-center text-emerald-200 text-lg">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm sm:text-base font-bold flex items-center gap-2">
+                        وضع الطبيب المشرف مفعّل (Supervisor Mode)
+                        <span class="text-[11px] bg-emerald-700 px-2 py-0.5 rounded-full text-emerald-100">صلاحية الاعتماد والتقييم</span>
+                    </h2>
+                    <p class="text-xs text-emerald-200">يمكنك الآن اعتماد الحالات، كتابة الملاحظات التقييمية للمقيمين، أو تغيير رمز المرور.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openChangePinModal()" class="bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl border border-emerald-600 transition">
+                    <i class="fa-solid fa-key ml-1"></i> تغيير رمز المرور
+                </button>
+                <button onclick="logoutSupervisor()" class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition">
+                    <i class="fa-solid fa-lock ml-1"></i> قفل وضع المشرف
+                </button>
+            </div>
         </div>
-        <select class="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 px-4 text-sm appearance-none text-gray-300">
-            <option>جميع الأطباء المقيمين</option>
-        </select>
-        <select class="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 px-4 text-sm appearance-none text-gray-300">
-            <option>جميع التصنيفات الجراحية</option>
-        </select>
-        <select class="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 px-4 text-sm appearance-none text-gray-300">
-            <option>كل الحالات</option>
-        </select>
+
+        <!-- 4 Top Dashboard KPIs -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 no-print">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-slate-500">إجمالي الحالات</p>
+                    <p id="stat-total" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">0</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-folder-tree"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-slate-500">الحالات المعتمدة</p>
+                    <p id="stat-approved" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">0</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-slate-500">قيد المراجعة</p>
+                    <p id="stat-pending" class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1">0</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-slate-500">الأطباء المشاركون</p>
+                    <p id="stat-doctors" class="text-2xl sm:text-3xl font-extrabold text-medical-blue mt-1">0</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-sky-50 text-medical-blue flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search & Tablet-Friendly Filters Bar -->
+        <section class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mb-5 no-print">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+                <!-- Search Input -->
+                <div class="lg:col-span-4 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-input" oninput="renderCases()" placeholder="بحث بالتشخيص، الإجراء، المريض..." class="w-full pr-10 pl-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-medical-blue focus:bg-white transition">
+                </div>
+
+                <!-- Resident Filter -->
+                <div class="lg:col-span-3">
+                    <select id="filter-resident" onchange="renderCases()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-medical-blue">
+                        <option value="ALL">جميع الأطباء المقيمين</option>
+                    </select>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="lg:col-span-3">
+                    <select id="filter-category" onchange="renderCases()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-medical-blue">
+                        <option value="ALL">جميع التصنيفات الجراحية</option>
+                        <option value="Maxillofacial Trauma">رضوض وكسور الوجه (Trauma)</option>
+                        <option value="Dentoalveolar & Impactions">جراحة سنخية وطمر (Dentoalveolar)</option>
+                        <option value="Cysts, Tumors & Pathology">أكياس وأورام (Pathology)</option>
+                        <option value="Implantology & Grafting">زراعة وتطعيم عظم (Implantology)</option>
+                        <option value="Odontogenic Infections">التهابات الوجه والرقبة (Infections)</option>
+                        <option value="Orthognathic & TMJ">جراحة تقويمية ومفصل (Orthognathic/TMJ)</option>
+                        <option value="Other">أخرى (Other)</option>
+                    </select>
+                </div>
+
+                <!-- Approval Status Filter -->
+                <div class="lg:col-span-2">
+                    <select id="filter-status" onchange="renderCases()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-medical-blue">
+                        <option value="ALL">كل الحالات</option>
+                        <option value="approved">المعتمدة فقط ✓</option>
+                        <option value="pending">قيد المراجعة ⏳</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading Skeleton -->
+        <div id="loading-state" class="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-medical-blue mb-3"></i>
+            <p class="text-sm font-bold text-slate-700">جاري مزامنة السجل السحابي للقسم...</p>
+        </div>
+
+        <!-- Cases Feed -->
+        <section id="cases-container" class="space-y-4 hidden"></section>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-2xl mx-auto mb-3">
+                <i class="fa-solid fa-notes-medical"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800">لا توجد حالات جراحية مطابقة</h3>
+            <p class="text-sm text-slate-500 mt-1 max-w-md mx-auto">يمكن للأطباء المقيمين إضافة حالاتهم الآن لتظهر مباشرة في لوحة متابعة المشرف.</p>
+            <button onclick="openCaseModal()" class="mt-5 bg-medical-teal hover:bg-medical-tealDark text-white font-bold px-6 py-3 rounded-xl text-sm transition inline-flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-plus"></i>
+                إضافة أول حالة جراحية
+            </button>
+        </div>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: ADD / EDIT SURGICAL CASE FORM                                -->
+    <!-- ===================================================================== -->
+    <div id="case-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm overflow-y-auto no-print">
+        <div class="min-h-screen px-3 py-5 flex items-center justify-center">
+            <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+                
+                <div class="bg-medical-900 text-white px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-file-medical text-teal-400 text-xl"></i>
+                        <h2 id="modal-title" class="text-lg font-bold">إضافة حالة جراحية للسجل المشترك</h2>
+                    </div>
+                    <button onclick="closeCaseModal()" class="text-slate-400 hover:text-white p-2 rounded-xl transition">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <form id="case-form" onsubmit="saveCase(event)" class="p-5 sm:p-6 space-y-5 max-h-[84vh] overflow-y-auto">
+                    <input type="hidden" id="edit-case-id">
+
+                    <!-- Section 1: Resident & Supervisor Attribution -->
+                    <div class="bg-sky-50/70 p-4 rounded-2xl border border-sky-200/80">
+                        <h3 class="text-sm font-extrabold text-medical-900 mb-3 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-medical-blue text-white text-xs flex items-center justify-center">1</span>
+                            بيانات الطبيب المقيم والفريق الجراحي
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">اسم الطبيب المقيم (Resident) *</label>
+                                <input type="text" id="f-residentName" required placeholder="د. اسم المقيم" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">الطبيب المشرف (Supervisor) *</label>
+                                <input type="text" id="f-supervisor" required placeholder="أ.د. / د. اسم المشرف" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">الدور الجراحي (Role) *</label>
+                                <select id="f-role" required class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-medical-tealDark focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                                    <option value="Primary Surgeon">جراح رئيسي (Primary Surgeon)</option>
+                                    <option value="First Assistant">مساعد أول (First Assistant)</option>
+                                    <option value="Observer">مراقب (Observer)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ العملية *</label>
+                                <input type="date" id="f-date" required class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Patient Info & ASA -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <h3 class="text-sm font-extrabold text-medical-900 mb-3 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-medical-blue text-white text-xs flex items-center justify-center">2</span>
+                            بيانات المريض والتقييم الصحي (Patient & ASA)
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">اسم المريض أو رمزه (Patient Name / ID) *</label>
+                                <input type="text" id="f-patientCode" required placeholder="مثال: أحمد م. / MRN-4021" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">العمر *</label>
+                                    <input type="number" id="f-age" required min="0" max="120" placeholder="سنة" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">الجنس</label>
+                                    <select id="f-gender" class="w-full px-2 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                                        <option value="ذكر">ذكر (M)</option>
+                                        <option value="أنثى">أنثى (F)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">تصنيف ASA الصحي</label>
+                                <select id="f-asa" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                                    <option value="ASA I">ASA I (سليم)</option>
+                                    <option value="ASA II">ASA II (مرض جهازي خفيف)</option>
+                                    <option value="ASA III">ASA III (مرض جهازي شديد)</option>
+                                    <option value="ASA IV">ASA IV (مهدد للحياة)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Diagnosis & Surgical Procedure -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <h3 class="text-sm font-extrabold text-medical-900 mb-3 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-medical-blue text-white text-xs flex items-center justify-center">3</span>
+                            التشخيص والتدخل الجراحي (Diagnosis & Procedure)
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">التصنيف الجراحي *</label>
+                                <select id="f-category" required class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                                    <option value="Maxillofacial Trauma">رضوض وكسور الوجه (Trauma)</option>
+                                    <option value="Dentoalveolar & Impactions">جراحة سنخية وطمر (Dentoalveolar)</option>
+                                    <option value="Cysts, Tumors & Pathology">أكياس وأورام (Pathology)</option>
+                                    <option value="Implantology & Grafting">زراعة وتطعيم عظم (Implantology)</option>
+                                    <option value="Odontogenic Infections">التهابات الوجه والرقبة (Infections)</option>
+                                    <option value="Orthognathic & TMJ">جراحة تقويمية ومفصل (Orthognathic/TMJ)</option>
+                                    <option value="Other">أخرى (Other)</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">التشخيص النهائي (Diagnosis) *</label>
+                                <input type="text" id="f-diagnosis" required placeholder="مثال: Left Mandibular Angle Fracture" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">الإجراء الجراحي (Surgical Procedure) *</label>
+                                <input type="text" id="f-procedure" required placeholder="مثال: ORIF via Intraoral Approach using 2.0mm Titanium Miniplate" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">نوع التخدير (Anesthesia)</label>
+                                <select id="f-anesthesia" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-medical-blue focus:outline-none">
+                                    <option value="GA (تخدير عام)">GA (تخدير عام)</option>
+                                    <option value="LA (تخدير موضعي)">LA (تخدير موضعي)</option>
+                                    <option value="IV Sedation (تهدئة وريدية)">IV Sedation (تهدئة وريدية)</option>
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">الملاحظات الجراحية والمواد المستخدمة (Notes, Implants, Plates, Follow-up)</label>
+                                <textarea id="f-notes" rows="2" placeholder="اكتب خطوات العملية بإيجاز، قياسات الصفائح والبراغي، وحالة المريض بعد العملية..." class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-medical-blue focus:outline-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: 4 Compressed Clinical & Radiographic Photos -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <h3 class="text-sm font-extrabold text-medical-900 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-full bg-medical-blue text-white text-xs flex items-center justify-center">4</span>
+                                التوثيق البصري والشعاعي (4 صور مضغوطة سحابياً)
+                            </h3>
+                            <span class="text-[11px] text-slate-600 bg-white px-2.5 py-1 rounded-full border border-slate-200">
+                                <i class="fa-solid fa-cloud-arrow-up text-medical-blue ml-1"></i>
+                                ضغط تلقائي ذكي للمزامنة السريعة
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <!-- Slot 1 -->
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex flex-col">
+                                <span class="text-xs font-bold text-slate-700 mb-1.5 flex justify-between">
+                                    <span>1. أشعة قبل العملية</span>
+                                    <span class="text-[10px] text-slate-400">Pre-op X-Ray</span>
+                                </span>
+                                <div onclick="document.getElementById('input-preXray').click()" class="relative h-32 bg-slate-100 hover:bg-sky-50 border-2 border-dashed border-slate-300 hover:border-medical-blue rounded-xl flex flex-col items-center justify-center cursor-pointer overflow-hidden transition">
+                                    <img id="img-preXray" class="hidden w-full h-full object-cover">
+                                    <div id="placeholder-preXray" class="text-center p-2">
+                                        <i class="fa-solid fa-x-ray text-slate-400 text-xl mb-1"></i>
+                                        <p class="text-[11px] text-slate-500 font-semibold">رفع OPG / CBCT</p>
+                                    </div>
+                                    <button type="button" id="remove-preXray" onclick="removeImage(event, 'preXray')" class="hidden absolute top-1.5 left-1.5 bg-red-600 text-white w-7 h-7 rounded-full text-xs flex items-center justify-center shadow">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                <input type="file" id="input-preXray" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'preXray')">
+                            </div>
+
+                            <!-- Slot 2 -->
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex flex-col">
+                                <span class="text-xs font-bold text-slate-700 mb-1.5 flex justify-between">
+                                    <span>2. سريري قبل العملية</span>
+                                    <span class="text-[10px] text-slate-400">Pre-op Clinical</span>
+                                </span>
+                                <div onclick="document.getElementById('input-preClin').click()" class="relative h-32 bg-slate-100 hover:bg-sky-50 border-2 border-dashed border-slate-300 hover:border-medical-blue rounded-xl flex flex-col items-center justify-center cursor-pointer overflow-hidden transition">
+                                    <img id="img-preClin" class="hidden w-full h-full object-cover">
+                                    <div id="placeholder-preClin" class="text-center p-2">
+                                        <i class="fa-solid fa-camera text-slate-400 text-xl mb-1"></i>
+                                        <p class="text-[11px] text-slate-500 font-semibold">رفع صورة سريرية</p>
+                                    </div>
+                                    <button type="button" id="remove-preClin" onclick="removeImage(event, 'preClin')" class="hidden absolute top-1.5 left-1.5 bg-red-600 text-white w-7 h-7 rounded-full text-xs flex items-center justify-center shadow">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                <input type="file" id="input-preClin" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'preClin')">
+                            </div>
+
+                            <!-- Slot 3 -->
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex flex-col">
+                                <span class="text-xs font-bold text-slate-700 mb-1.5 flex justify-between">
+                                    <span>3. أثناء العملية</span>
+                                    <span class="text-[10px] text-slate-400">Intra-op</span>
+                                </span>
+                                <div onclick="document.getElementById('input-intraOp').click()" class="relative h-32 bg-slate-100 hover:bg-sky-50 border-2 border-dashed border-slate-300 hover:border-medical-blue rounded-xl flex flex-col items-center justify-center cursor-pointer overflow-hidden transition">
+                                    <img id="img-intraOp" class="hidden w-full h-full object-cover">
+                                    <div id="placeholder-intraOp" class="text-center p-2">
+                                        <i class="fa-solid fa-scalpel text-slate-400 text-xl mb-1"></i>
+                                        <p class="text-[11px] text-slate-500 font-semibold">رفع صورة جراحية</p>
+                                    </div>
+                                    <button type="button" id="remove-intraOp" onclick="removeImage(event, 'intraOp')" class="hidden absolute top-1.5 left-1.5 bg-red-600 text-white w-7 h-7 rounded-full text-xs flex items-center justify-center shadow">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                <input type="file" id="input-intraOp" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'intraOp')">
+                            </div>
+
+                            <!-- Slot 4 -->
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex flex-col">
+                                <span class="text-xs font-bold text-slate-700 mb-1.5 flex justify-between">
+                                    <span>4. بعد العملية</span>
+                                    <span class="text-[10px] text-slate-400">Post-op</span>
+                                </span>
+                                <div onclick="document.getElementById('input-postOp').click()" class="relative h-32 bg-slate-100 hover:bg-sky-50 border-2 border-dashed border-slate-300 hover:border-medical-blue rounded-xl flex flex-col items-center justify-center cursor-pointer overflow-hidden transition">
+                                    <img id="img-postOp" class="hidden w-full h-full object-cover">
+                                    <div id="placeholder-postOp" class="text-center p-2">
+                                        <i class="fa-solid fa-check-double text-slate-400 text-xl mb-1"></i>
+                                        <p class="text-[11px] text-slate-500 font-semibold">أشعة أو صورة متابعة</p>
+                                    </div>
+                                    <button type="button" id="remove-postOp" onclick="removeImage(event, 'postOp')" class="hidden absolute top-1.5 left-1.5 bg-red-600 text-white w-7 h-7 rounded-full text-xs flex items-center justify-center shadow">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                <input type="file" id="input-postOp" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'postOp')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Row -->
+                    <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-200">
+                        <button type="button" onclick="closeCaseModal()" class="px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm hover:bg-slate-50 transition">
+                            إلغاء
+                        </button>
+                        <button type="submit" id="save-case-btn" class="px-7 py-3 rounded-xl bg-medical-teal hover:bg-medical-tealDark text-white font-extrabold text-sm shadow-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>حفظ ومزامنة الحالة</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <!-- حالة عدم وجود بيانات -->
-    <div class="border border-dashed border-gray-700 rounded-2xl p-8 text-center bg-gray-800/50">
-        <div class="bg-gray-800 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4 border border-gray-700">
-            <i class="fa-solid fa-file-circle-plus text-gray-400 text-xl"></i>
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: SUPERVISOR PIN LOGIN MODAL                                   -->
+    <!-- ===================================================================== -->
+    <div id="supervisor-login-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mx-auto mb-3">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900">دخول الطبيب المشرف</h3>
+            <p class="text-xs text-slate-500 mt-1">أدخل رمز المرور لتفعيل صلاحية اعتماد الحالات وإضافة التقييم (الافتراضي: 1234)</p>
+            <form onsubmit="verifySupervisorPin(event)" class="mt-4 space-y-3">
+                <input type="password" id="pin-input" inputmode="numeric" required placeholder="••••" class="w-full text-center tracking-widest text-xl font-extrabold py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeSupervisorLoginModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm hover:bg-slate-50">إلغاء</button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-medical-900 hover:bg-slate-800 text-white font-bold text-sm">تفعيل</button>
+                </div>
+            </form>
         </div>
-        <h3 class="text-lg font-bold mb-2">لا توجد حالات جراحية مطابقة</h3>
-        <p class="text-gray-400 text-sm">يمكن للأطباء المقيمين إضافة حالاتهم الآن لتظهر هنا</p>
     </div>
 
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: CHANGE SUPERVISOR PIN MODAL                                  -->
+    <!-- ===================================================================== -->
+    <div id="change-pin-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl mx-auto mb-3">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900">تغيير رمز مرور المشرف</h3>
+            <p class="text-xs text-slate-500 mt-1">سيتم تحديث الرمز السحابي لجميع جلسات المشرفين</p>
+            <form onsubmit="saveNewPin(event)" class="mt-4 space-y-3">
+                <input type="text" id="new-pin-input" inputmode="numeric" minlength="4" maxlength="8" required placeholder="أدخل الرمز الجديد (4 أرقام على الأقل)" class="w-full text-center tracking-widest text-lg font-extrabold py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeChangePinModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm hover:bg-slate-50">إلغاء</button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm">حفظ الرمز</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 4: SUPERVISOR FEEDBACK & APPROVAL MODAL                         -->
+    <!-- ===================================================================== -->
+    <div id="feedback-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-comment-medical text-emerald-600"></i>
+                    تقييم واعتماد المشرف
+                </h3>
+                <button onclick="closeFeedbackModal()" class="text-slate-400 hover:text-slate-700 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p id="feedback-case-title" class="text-xs font-bold text-slate-500 mb-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200"></p>
+            <form onsubmit="submitSupervisorReview(event)" class="space-y-4">
+                <input type="hidden" id="feedback-case-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">حالة الاعتماد الأكاديمي</label>
+                    <select id="feedback-status" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <option value="approved">✓ معتمد (Approved)</option>
+                        <option value="pending">⏳ قيد المراجعة / يحتاج استكمال (Pending)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظة الطبيب المشرف التقييمية (Supervisor Feedback)</label>
+                    <textarea id="feedback-text" rows="3" placeholder="اكتب توجيهاتك أو تقييمك لأداء المقيم في هذه الحالة..." class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none"></textarea>
+                </div>
+                <div class="flex gap-2 pt-1">
+                    <button type="button" onclick="closeFeedbackModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm hover:bg-slate-50">إلغاء</button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow">حفظ الاعتماد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 5: FULL-SCREEN LIGHTBOX FOR CLINICAL IMAGES                     -->
+    <!-- ===================================================================== -->
+    <div id="lightbox-modal" onclick="closeLightbox()" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 no-print">
+        <div class="max-w-5xl w-full flex flex-col items-center" onclick="event.stopPropagation()">
+            <div class="w-full flex items-center justify-between text-white mb-3 px-2">
+                <span id="lightbox-caption" class="font-bold text-sm sm:text-base"></span>
+                <button onclick="closeLightbox()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <img id="lightbox-img" src="" alt="Clinical Image" class="max-h-[82vh] max-w-full rounded-2xl shadow-2xl border border-slate-700 object-contain bg-black">
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 6: DELETE CONFIRMATION MODAL                                    -->
+    <!-- ===================================================================== -->
+    <div id="delete-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
+            <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl mx-auto mb-3">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900">حذف الحالة الجراحية؟</h3>
+            <p class="text-xs text-slate-500 mt-1">سيتم حذف الحالة والصور المرفقة من السجل السحابي المشترك نهائياً.</p>
+            <div class="flex gap-3 mt-5">
+                <button onclick="closeDeleteModal()" class="flex-1 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm hover:bg-slate-50">تراجع</button>
+                <button id="confirm-delete-btn" class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm">نعم، احذف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- FIREBASE CLOUD SYNC & APPLICATION LOGIC                               -->
+    <!-- ===================================================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global App State
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let cases = [];
+        let supervisorPin = "1234";
+        let isSupervisorMode = false;
+        let currentImages = { preXray: null, preClin: null, intraOp: null, postOp: null };
+        let caseToDeleteId = null;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'omfs-shared-logbook';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+        // Update Sync Status Badge
+        function setSyncStatus(connected, label) {
+            const badge = document.getElementById('sync-badge');
+            if (connected) {
+                badge.className = "inline-flex items-center gap-1.5 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full";
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span>${label}`;
+            } else {
+                badge.className = "inline-flex items-center gap-1.5 text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full";
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>${label}`;
+            }
+        }
+
+        // Generate clean vector sample images for first-time initialization
+        function createSampleMedicalGraphic(type, title, subtitle) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 500;
+            canvas.height = 330;
+            const ctx = canvas.getContext('2d');
+
+            if (type === 'xray' || type === 'postxray') {
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, 500, 330);
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 8;
+                ctx.beginPath();
+                ctx.moveTo(85, 100);
+                ctx.lineTo(120, 225);
+                ctx.quadraticCurveTo(250, 265, 380, 225);
+                ctx.lineTo(415, 100);
+                ctx.stroke();
+
+                if (type === 'xray') {
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 4;
+                    ctx.setLineDash([7, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(360, 180);
+                    ctx.lineTo(395, 235);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else {
+                    ctx.strokeStyle = '#10b981';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.moveTo(350, 198);
+                    ctx.lineTo(402, 186);
+                    ctx.stroke();
+                }
+            } else {
+                ctx.fillStyle = '#0c4a6e';
+                ctx.fillRect(0, 0, 500, 330);
+                ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(16, 16, 468, 298);
+            }
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 20px Cairo, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(title, 250, 68);
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = '14px Cairo, sans-serif';
+            ctx.fillText(subtitle, 250, 292);
+
+            return canvas.toDataURL('image/jpeg', 0.75);
+        }
+
+        // Initialize Firebase Authentication & Real-Time Firestore Listeners
+        async function initCloudApp() {
+            document.getElementById('print-date').textContent = 'تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG');
+
+            if (!firebaseConfig) {
+                setSyncStatus(false, "وضع المعاينة غير متصل بالسحابة");
+                document.getElementById('loading-state').classList.add('hidden');
+                renderCases();
+                return;
+            }
+
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // RULE 3: Authenticate FIRST before any Firestore query
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (!user) return;
+                    currentUser = user;
+                    setSyncStatus(true, "متصل سحابياً ومباشر");
+                    await setupRealtimeListeners();
+                });
+            } catch (err) {
+                console.error("Cloud Init Error:", err);
+                setSyncStatus(false, "تعذر الاتصال بالسحابة");
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        // Setup Public Shared Collection Listeners (RULE 1 & RULE 2)
+        async function setupRealtimeListeners() {
+            if (!currentUser || !db) return;
+
+            // 1. Listen to Shared Supervisor Settings (PIN)
+            const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'omfs_settings', 'config');
+            onSnapshot(settingsDocRef, (snap) => {
+                if (snap.exists() && snap.data().supervisorPin) {
+                    supervisorPin = String(snap.data().supervisorPin);
+                }
+            }, (err) => console.error("Settings listener error:", err));
+
+            // 2. Listen to All Shared Surgical Cases
+            const casesColRef = collection(db, 'artifacts', appId, 'public', 'data', 'omfs_cases');
+            onSnapshot(casesColRef, async (snapshot) => {
+                document.getElementById('loading-state').classList.add('hidden');
+                const loadedCases = [];
+                snapshot.forEach((docSnap) => {
+                    loadedCases.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                // Sort newest first in memory (RULE 2: No orderBy in Firestore query)
+                loadedCases.sort((a, b) => {
+                    const tA = a.createdAt || 0;
+                    const tB = b.createdAt || 0;
+                    return tB - tA;
+                });
+
+                // Seed 1 sample case if database is completely empty on first launch
+                if (loadedCases.length === 0 && !sessionStorage.getItem('seeded_omfs')) {
+                    sessionStorage.setItem('seeded_omfs', 'true');
+                    await addDoc(casesColRef, {
+                        residentName: 'د. سارة العبدالله',
+                        supervisor: 'أ.د. خالد المنصور',
+                        role: 'Primary Surgeon',
+                        date: new Date().toISOString().split('T')[0],
+                        patientCode: 'محمد ع. (MRN-1042)',
+                        age: '27',
+                        gender: 'ذكر',
+                        asa: 'ASA I',
+                        category: 'Maxillofacial Trauma',
+                        diagnosis: 'Left Mandibular Angle Fracture',
+                        procedure: 'ORIF via Intraoral Approach using 2.0mm Champy Miniplate',
+                        anesthesia: 'GA (تخدير عام)',
+                        notes: 'استخراج الرحى الثالثة المنطمرة في خط الكسر #38، رد تشريحي وتثبيت بصفيحة تيتانيوم 4 ثقوب. الإطباق سليم والعصب السنخي السفلي محفوظ.',
+                        status: 'approved',
+                        supervisorFeedback: 'توثيق ممتاز، رد تشريحي دقيق، والصور الشعاعية واضحة جداً.',
+                        createdAt: Date.now(),
+                        images: {
+                            preXray: createSampleMedicalGraphic('xray', 'Pre-op OPG', 'كسر زاوية الفك السفلي الأيسر'),
+                            preClin: createSampleMedicalGraphic('clinical', 'Pre-op Occlusion', 'سوء إطباق قبل التثبيت'),
+                            intraOp: createSampleMedicalGraphic('clinical', 'Intra-op ORIF', 'تثبيت صفيحة التيتانيوم 2.0mm'),
+                            postOp: createSampleMedicalGraphic('postxray', 'Post-op OPG', 'أشعة ما بعد العملية')
+                        }
+                    });
+                    return;
+                }
+
+                cases = loadedCases;
+                updateResidentFilterOptions();
+                renderCases();
+            }, (error) => {
+                console.error("Cases snapshot error:", error);
+                showToast("حدث خطأ في مزامنة الحالات السحابية", "error");
+            });
+        }
+
+        // Populate Resident Dropdown Dynamically
+        function updateResidentFilterOptions() {
+            const select = document.getElementById('filter-resident');
+            const currentVal = select.value;
+            const uniqueResidents = [...new Set(cases.map(c => c.residentName).filter(Boolean))].sort();
+
+            select.innerHTML = `<option value="ALL">جميع الأطباء المقيمين (${uniqueResidents.length})</option>` +
+                uniqueResidents.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join('');
+
+            if (uniqueResidents.includes(currentVal)) {
+                select.value = currentVal;
+            }
+        }
+
+        // Render Dashboard KPIs & Case Cards
+        window.renderCases = function() {
+            const container = document.getElementById('cases-container');
+            const emptyState = document.getElementById('empty-state');
+
+            const searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
+            const residentFilter = document.getElementById('filter-resident').value;
+            const catFilter = document.getElementById('filter-category').value;
+            const statusFilter = document.getElementById('filter-status').value;
+
+            // Update Top KPIs
+            const total = cases.length;
+            const approvedCount = cases.filter(c => c.status === 'approved').length;
+            const pendingCount = cases.filter(c => c.status !== 'approved').length;
+            const doctorsCount = new Set(cases.map(c => c.residentName).filter(Boolean)).size;
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-approved').textContent = approvedCount;
+            document.getElementById('stat-pending').textContent = pendingCount;
+            document.getElementById('stat-doctors').textContent = doctorsCount;
+            document.getElementById('print-summary-line').textContent =
+                `إجمالي الحالات: ${total} | المعتمدة: ${approvedCount} | قيد المراجعة: ${pendingCount} | الأطباء: ${doctorsCount}`;
+
+            // Filter Cases
+            const filtered = cases.filter(c => {
+                const matchesSearch = !searchQuery ||
+                    (c.diagnosis && c.diagnosis.toLowerCase().includes(searchQuery)) ||
+                    (c.procedure && c.procedure.toLowerCase().includes(searchQuery)) ||
+                    (c.patientCode && c.patientCode.toLowerCase().includes(searchQuery)) ||
+                    (c.residentName && c.residentName.toLowerCase().includes(searchQuery)) ||
+                    (c.supervisor && c.supervisor.toLowerCase().includes(searchQuery));
+
+                const matchesResident = residentFilter === 'ALL' || c.residentName === residentFilter;
+                const matchesCat = catFilter === 'ALL' || c.category === catFilter;
+                const isApproved = c.status === 'approved';
+                const matchesStatus = statusFilter === 'ALL' ||
+                    (statusFilter === 'approved' && isApproved) ||
+                    (statusFilter === 'pending' && !isApproved);
+
+                return matchesSearch && matchesResident && matchesCat && matchesStatus;
+            });
+
+            if (filtered.length === 0) {
+                container.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.classList.remove('hidden');
+
+            container.innerHTML = filtered.map(c => {
+                const isApproved = c.status === 'approved';
+
+                // Approval Status Badge
+                const statusBadge = isApproved
+                    ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-600"></i>معتمد من المشرف</span>`
+                    : `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1.5"><i class="fa-solid fa-clock text-amber-600"></i>قيد المراجعة</span>`;
+
+                // Role Badge
+                let roleBadge = '';
+                if (c.role === 'Primary Surgeon') {
+                    roleBadge = `<span class="bg-teal-50 text-teal-800 border border-teal-200 px-2.5 py-0.5 rounded-full text-xs font-bold">جراح رئيسي</span>`;
+                } else if (c.role === 'First Assistant') {
+                    roleBadge = `<span class="bg-sky-50 text-sky-800 border border-sky-200 px-2.5 py-0.5 rounded-full text-xs font-bold">مساعد أول</span>`;
+                } else {
+                    roleBadge = `<span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-0.5 rounded-full text-xs font-bold">مراقب</span>`;
+                }
+
+                // 4 Clinical Images Strip
+                const imgEntries = [
+                    { key: 'preXray', label: 'أشعة قبل العملية (Pre-op X-Ray)' },
+                    { key: 'preClin', label: 'سريري قبل العملية (Pre-op Clinical)' },
+                    { key: 'intraOp', label: 'أثناء العملية (Intra-op)' },
+                    { key: 'postOp', label: 'بعد العملية (Post-op)' }
+                ].filter(item => c.images && c.images[item.key]);
+
+                let imagesHTML = '';
+                if (imgEntries.length > 0) {
+                    imagesHTML = `
+                        <div class="mt-3.5 pt-3 border-t border-slate-100">
+                            <p class="text-xs font-bold text-slate-500 mb-2 flex items-center gap-1.5">
+                                <i class="fa-solid fa-images text-medical-blue"></i>
+                                الصور السريرية والشعاعية (اضغط للتكبير):
+                            </p>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 print-grid-images">
+                                ${imgEntries.map(item => `
+                                    <div onclick="openLightbox('${c.id}', '${item.key}', '${item.label}')" class="group relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900 cursor-pointer h-32 sm:h-36">
+                                        <img src="${c.images[item.key]}" alt="${item.label}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2">
+                                            <p class="text-[11px] text-white font-bold truncate">${item.label}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Supervisor Action Controls (Visible when Supervisor Mode is active)
+                const supervisorControls = isSupervisorMode ? `
+                    <div class="mt-3 pt-3 border-t border-emerald-200 bg-emerald-50/70 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 no-print">
+                        <span class="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-shield text-emerald-700"></i>
+                            إجراءات الطبيب المشرف:
+                        </span>
+                        <div class="flex flex-wrap items-center gap-2">
+                            ${!isApproved ? `
+                                <button onclick="quickApproveCase('${c.id}')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check"></i>
+                                    اعتماد فوري (Approve)
+                                </button>
+                            ` : ''}
+                            <button onclick="openFeedbackModal('${c.id}')" class="bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-comment-medical text-emerald-600"></i>
+                                ${c.supervisorFeedback ? 'تعديل التقييم / الحالة' : 'إضافة ملاحظة تقييمية'}
+                            </button>
+                        </div>
+                    </div>
+                ` : '';
+
+                return `
+                    <article class="bg-white rounded-2xl border ${isApproved ? 'border-emerald-200' : 'border-slate-200'} shadow-sm p-4 sm:p-5 print-card">
+                        <!-- Top Attribution Header -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="bg-medical-900 text-white text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5">
+                                    <i class="fa-solid fa-user-doctor text-sky-400"></i>
+                                    ${escapeHTML(c.residentName)}
+                                </span>
+                                ${roleBadge}
+                                <span class="text-xs font-semibold text-slate-500"><i class="fa-regular fa-calendar ml-1"></i>${escapeHTML(c.date)}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                ${statusBadge}
+                                <div class="flex items-center gap-1 no-print">
+                                    <button onclick="editCase('${c.id}')" class="text-slate-500 hover:text-medical-blue hover:bg-sky-50 p-2 rounded-xl text-xs font-bold transition" title="تعديل الحالة">
+                                        <i class="fa-solid fa-pen-to-square text-base"></i>
+                                    </button>
+                                    <button onclick="promptDeleteCase('${c.id}')" class="text-slate-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl text-xs font-bold transition" title="حذف الحالة">
+                                        <i class="fa-solid fa-trash-can text-base"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Patient & Clinical Metadata Bar -->
+                        <div class="mt-3 bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <div class="flex flex-wrap items-center gap-3 sm:gap-5">
+                                <span><span class="text-slate-500">المريض:</span> <strong class="text-slate-900 font-extrabold text-sm">${escapeHTML(c.patientCode)}</strong></span>
+                                <span><span class="text-slate-500">العمر/الجنس:</span> <strong class="text-slate-800">${escapeHTML(c.age)} سنة (${escapeHTML(c.gender)})</strong></span>
+                                <span class="bg-white border border-slate-200 px-2 py-0.5 rounded-md font-bold text-slate-700">${escapeHTML(c.asa || 'ASA I')}</span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3 text-slate-600">
+                                <span><span class="text-slate-400">التخدير:</span> <strong class="text-slate-800">${escapeHTML(c.anesthesia)}</strong></span>
+                                <span><span class="text-slate-400">المشرف:</span> <strong class="text-slate-800">${escapeHTML(c.supervisor || 'غير محدد')}</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Diagnosis & Surgical Procedure -->
+                        <div class="mt-3 space-y-1.5">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="bg-sky-50 text-medical-blueDark border border-sky-200 px-2.5 py-0.5 rounded-lg text-xs font-bold">${escapeHTML(c.category)}</span>
+                                <h3 class="text-base sm:text-lg font-extrabold text-slate-900">${escapeHTML(c.diagnosis)}</h3>
+                            </div>
+                            <p class="text-sm font-bold text-slate-700">
+                                <span class="text-slate-400 font-normal">الإجراء الجراحي:</span> ${escapeHTML(c.procedure)}
+                            </p>
+                            ${c.notes ? `<p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed mt-2">${escapeHTML(c.notes)}</p>` : ''}
+                        </div>
+
+                        <!-- Supervisor Feedback Display Box (If feedback exists) -->
+                        ${c.supervisorFeedback ? `
+                            <div class="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5">
+                                <i class="fa-solid fa-quote-right text-emerald-600 mt-0.5"></i>
+                                <div class="text-xs">
+                                    <span class="font-extrabold text-emerald-900 block mb-0.5">ملاحظة وتقييم الطبيب المشرف:</span>
+                                    <p class="text-emerald-800 font-medium leading-relaxed">${escapeHTML(c.supervisorFeedback)}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- 4 Clinical Images -->
+                        ${imagesHTML}
+
+                        <!-- Supervisor Interactive Action Bar -->
+                        ${supervisorControls}
+                    </article>
+                `;
+            }).join('');
+        };
+
+        // Open Add / Edit Modal
+        window.openCaseModal = function(caseObj = null) {
+            const modal = document.getElementById('case-modal');
+            const form = document.getElementById('case-form');
+            form.reset();
+
+            currentImages = { preXray: null, preClin: null, intraOp: null, postOp: null };
+            ['preXray', 'preClin', 'intraOp', 'postOp'].forEach(slot => updateImageSlotUI(slot, null));
+
+            if (caseObj) {
+                document.getElementById('modal-title').textContent = 'تعديل بيانات الحالة الجراحية';
+                document.getElementById('edit-case-id').value = caseObj.id;
+                document.getElementById('f-residentName').value = caseObj.residentName || '';
+                document.getElementById('f-supervisor').value = caseObj.supervisor || '';
+                document.getElementById('f-role').value = caseObj.role || 'Primary Surgeon';
+                document.getElementById('f-date').value = caseObj.date || '';
+                document.getElementById('f-patientCode').value = caseObj.patientCode || '';
+                document.getElementById('f-age').value = caseObj.age || '';
+                document.getElementById('f-gender').value = caseObj.gender || 'ذكر';
+                document.getElementById('f-asa').value = caseObj.asa || 'ASA I';
+                document.getElementById('f-category').value = caseObj.category || 'Maxillofacial Trauma';
+                document.getElementById('f-diagnosis').value = caseObj.diagnosis || '';
+                document.getElementById('f-procedure').value = caseObj.procedure || '';
+                document.getElementById('f-anesthesia').value = caseObj.anesthesia || 'GA (تخدير عام)';
+                document.getElementById('f-notes').value = caseObj.notes || '';
+
+                if (caseObj.images) {
+                    currentImages = { ...caseObj.images };
+                    ['preXray', 'preClin', 'intraOp', 'postOp'].forEach(slot => {
+                        if (currentImages[slot]) updateImageSlotUI(slot, currentImages[slot]);
+                    });
+                }
+            } else {
+                document.getElementById('modal-title').textContent = 'إضافة حالة جراحية للسجل المشترك';
+                document.getElementById('edit-case-id').value = '';
+                document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeCaseModal = function() {
+            document.getElementById('case-modal').classList.add('hidden');
+        };
+
+        window.editCase = function(id) {
+            const target = cases.find(c => c.id === id);
+            if (target) openCaseModal(target);
+        };
+
+        // Smart Image Compression (Max 750px, JPEG 0.72) so 4 images fit comfortably within 1MB Firestore document limit
+        window.handleImageUpload = function(event, slot) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const MAX_DIM = 750;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_DIM || height > MAX_DIM) {
+                        if (width > height) {
+                            height = Math.round((height * MAX_DIM) / width);
+                            width = MAX_DIM;
+                        } else {
+                            width = Math.round((width * MAX_DIM) / height);
+                            height = MAX_DIM;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.72);
+                    currentImages[slot] = compressedDataUrl;
+                    updateImageSlotUI(slot, compressedDataUrl);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function updateImageSlotUI(slot, dataUrl) {
+            const imgEl = document.getElementById(`img-${slot}`);
+            const placeholderEl = document.getElementById(`placeholder-${slot}`);
+            const removeBtn = document.getElementById(`remove-${slot}`);
+
+            if (dataUrl) {
+                imgEl.src = dataUrl;
+                imgEl.classList.remove('hidden');
+                placeholderEl.classList.add('hidden');
+                removeBtn.classList.remove('hidden');
+            } else {
+                imgEl.src = '';
+                imgEl.classList.add('hidden');
+                placeholderEl.classList.remove('hidden');
+                removeBtn.classList.add('hidden');
+                document.getElementById(`input-${slot}`).value = '';
+            }
+        }
+
+        window.removeImage = function(event, slot) {
+            event.stopPropagation();
+            currentImages[slot] = null;
+            updateImageSlotUI(slot, null);
+        };
+
+        // Save Case to Shared Firestore Cloud
+        window.saveCase = async function(event) {
+            event.preventDefault();
+            if (!currentUser || !db) {
+                showToast("يرجى الانتظار حتى يكتمل الاتصال السحابي", "error");
+                return;
+            }
+
+            const btn = document.getElementById('save-case-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>جاري الرفع والمزامنة...</span>`;
+
+            const editId = document.getElementById('edit-case-id').value;
+            const payload = {
+                residentName: document.getElementById('f-residentName').value.trim(),
+                supervisor: document.getElementById('f-supervisor').value.trim(),
+                role: document.getElementById('f-role').value,
+                date: document.getElementById('f-date').value,
+                patientCode: document.getElementById('f-patientCode').value.trim(),
+                age: document.getElementById('f-age').value,
+                gender: document.getElementById('f-gender').value,
+                asa: document.getElementById('f-asa').value,
+                category: document.getElementById('f-category').value,
+                diagnosis: document.getElementById('f-diagnosis').value.trim(),
+                procedure: document.getElementById('f-procedure').value.trim(),
+                anesthesia: document.getElementById('f-anesthesia').value,
+                notes: document.getElementById('f-notes').value.trim(),
+                images: { ...currentImages },
+                updatedAt: Date.now()
+            };
+
+            try {
+                if (editId) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'omfs_cases', editId);
+                    await updateDoc(docRef, payload);
+                    showToast("تم تحديث الحالة ومزامنتها مع المشرف بنجاح");
+                } else {
+                    payload.status = 'pending';
+                    payload.supervisorFeedback = '';
+                    payload.createdAt = Date.now();
+                    payload.authorUid = currentUser.uid;
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'omfs_cases');
+                    await addDoc(colRef, payload);
+                    showToast("تمت إضافة الحالة وظهرت الآن لدى المشرف");
+                }
+                closeCaseModal();
+            } catch (err) {
+                console.error("Save error:", err);
+                showToast("حدث خطأ أثناء الحفظ السحابي. تأكد من حجم الصور.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>حفظ ومزامنة الحالة</span>`;
+            }
+        };
+
+        // Supervisor PIN Authentication & Controls
+        window.openSupervisorLoginModal = function() {
+            if (isSupervisorMode) {
+                logoutSupervisor();
+                return;
+            }
+            document.getElementById('pin-input').value = '';
+            document.getElementById('supervisor-login-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('pin-input').focus(), 100);
+        };
+
+        window.closeSupervisorLoginModal = function() {
+            document.getElementById('supervisor-login-modal').classList.add('hidden');
+        };
+
+        window.verifySupervisorPin = function(event) {
+            event.preventDefault();
+            const entered = document.getElementById('pin-input').value.trim();
+            if (entered === supervisorPin) {
+                isSupervisorMode = true;
+                closeSupervisorLoginModal();
+                updateSupervisorUI();
+                renderCases();
+                showToast("تم تفعيل وضع الطبيب المشرف بنجاح");
+            } else {
+                showToast("رمز المرور غير صحيح", "error");
+            }
+        };
+
+        window.logoutSupervisor = function() {
+            isSupervisorMode = false;
+            updateSupervisorUI();
+            renderCases();
+            showToast("تم قفل وضع الطبيب المشرف");
+        };
+
+        function updateSupervisorUI() {
+            const banner = document.getElementById('supervisor-banner');
+            const btn = document.getElementById('supervisor-mode-btn');
+            const btnText = document.getElementById('supervisor-btn-text');
+
+            if (isSupervisorMode) {
+                banner.classList.remove('hidden');
+                btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition flex items-center gap-2 shadow";
+                btnText.textContent = "المشرف مفعّل ✓";
+            } else {
+                banner.classList.add('hidden');
+                btn.className = "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold px-4 py-2.5 rounded-xl text-sm transition flex items-center gap-2";
+                btnText.textContent = "دخول المشرف";
+            }
+        }
+
+        // Change Supervisor PIN in Firestore
+        window.openChangePinModal = function() {
+            document.getElementById('new-pin-input').value = '';
+            document.getElementById('change-pin-modal').classList.remove('hidden');
+        };
+
+        window.closeChangePinModal = function() {
+            document.getElementById('change-pin-modal').classList.add('hidden');
+        };
+
+        window.saveNewPin = async function(event) {
+            event.preventDefault();
+            if (!currentUser || !db) return;
+            const newPin = document.getElementById('new-pin-input').value.trim();
+            if (newPin.length < 4) return;
+
+            try {
+                const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'omfs_settings', 'config');
+                await setDoc(settingsDocRef, { supervisorPin: newPin, updatedAt: Date.now() }, { merge: true });
+                supervisorPin = newPin;
+                closeChangePinModal();
+                showToast("تم تحديث رمز مرور المشرف بنجاح");
+            } catch (err) {
+                console.error("PIN update error:", err);
+                showToast("تعذر تحديث رمز المرور", "error");
+            }
+        };
+
+        // Quick Approve & Feedback Modal
+        window.quickApproveCase = async function(caseId) {
+            if (!isSupervisorMode || !currentUser || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'omfs_cases', caseId);
+                await updateDoc(docRef, {
+                    status: 'approved',
+                    approvedAt: Date.now()
+                });
+                showToast("تم اعتماد الحالة الجراحية بنجاح ✓");
+            } catch (err) {
+                console.error("Approve error:", err);
+                showToast("تعذر اعتماد الحالة", "error");
+            }
+        };
+
+        window.openFeedbackModal = function(caseId) {
+            if (!isSupervisorMode) return;
+            const target = cases.find(c => c.id === caseId);
+            if (!target) return;
+
+            document.getElementById('feedback-case-id').value = target.id;
+            document.getElementById('feedback-case-title').textContent = `${target.residentName} — ${target.diagnosis}`;
+            document.getElementById('feedback-status').value = target.status === 'approved' ? 'approved' : 'pending';
+            document.getElementById('feedback-text').value = target.supervisorFeedback || '';
+            document.getElementById('feedback-modal').classList.remove('hidden');
+        };
+
+        window.closeFeedbackModal = function() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+        };
+
+        window.submitSupervisorReview = async function(event) {
+            event.preventDefault();
+            if (!isSupervisorMode || !currentUser || !db) return;
+
+            const caseId = document.getElementById('feedback-case-id').value;
+            const newStatus = document.getElementById('feedback-status').value;
+            const feedback = document.getElementById('feedback-text').value.trim();
+
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'omfs_cases', caseId);
+                await updateDoc(docRef, {
+                    status: newStatus,
+                    supervisorFeedback: feedback,
+                    reviewedAt: Date.now()
+                });
+                closeFeedbackModal();
+                showToast("تم حفظ تقييم واعتماد المشرف بنجاح");
+            } catch (err) {
+                console.error("Review error:", err);
+                showToast("حدث خطأ أثناء حفظ التقييم", "error");
+            }
+        };
+
+        // Delete Case
+        window.promptDeleteCase = function(id) {
+            caseToDeleteId = id;
+            document.getElementById('delete-modal').classList.remove('hidden');
+            document.getElementById('confirm-delete-btn').onclick = async function() {
+                if (!currentUser || !db || !caseToDeleteId) return;
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'omfs_cases', caseToDeleteId);
+                    await deleteDoc(docRef);
+                    closeDeleteModal();
+                    showToast("تم حذف الحالة من السجل المشترك");
+                } catch (err) {
+                    console.error("Delete error:", err);
+                    showToast("تعذر حذف الحالة", "error");
+                }
+            };
+        };
+
+        window.closeDeleteModal = function() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            caseToDeleteId = null;
+        };
+
+        // Lightbox Preview
+        window.openLightbox = function(caseId, slot, caption) {
+            const target = cases.find(c => c.id === caseId);
+            if (!target || !target.images || !target.images[slot]) return;
+
+            document.getElementById('lightbox-img').src = target.images[slot];
+            document.getElementById('lightbox-caption').textContent = `${target.residentName} | ${target.patientCode} — ${caption}`;
+            document.getElementById('lightbox-modal').classList.remove('hidden');
+        };
+
+        window.closeLightbox = function() {
+            document.getElementById('lightbox-modal').classList.add('hidden');
+        };
+
+        // Toast Helper
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'error' ? 'bg-red-600' : 'bg-medical-900';
+            const icon = type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check text-emerald-400';
+
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-xl shadow-xl text-sm font-bold flex items-center gap-2.5 transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // Security: XSS Prevention
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Start Cloud App
+        window.addEventListener('DOMContentLoaded', initCloudApp);
+    </script>
 </body>
 </html>
